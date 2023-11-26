@@ -15,6 +15,9 @@ arg=($@)
 #done
 #判断是SSD还是HDD
 
+
+storcli64 /c0 set cachebypass=off
+
 for ((i=1;i<=$num_arg;i++))
 do
 	disk_media=`cat /sys/block/${arg[$i-1]}/queue/rotational`

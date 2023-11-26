@@ -18,11 +18,13 @@ arg=($@)
 for ((i=1;i<=$num_arg;i++))
 do
 	disk_media=`cat /sys/block/${arg[$i-1]}/queue/rotational`
-	if [ $disk_media = 0 ];then
+	if [ $disk_media = 1 ];then
         	#SSD优化分支
 		echo "${arg[$i-1]},SSD,Start Storage performance tuning!"
 		#1.SSD不需要调度
 		echo none > /sys/block/${arg[$i-1]}/queue/scheduler
+		
+		
 		#2.关闭merge
 		echo 2 > /sys/block/${arg[$i-1]}/queue/nomerges
 		#3.disable熵池
@@ -43,24 +45,10 @@ do
 		#numa   numastat
 		#对于AMD，能配置NUMA nodes per socket（NPS），NPS4能获得最好的结果
 		#（妈的 矛盾啊）NPS1是用于找最大带宽，NPS4适用于找高并发的工作负载
-		echo "SSD Opt for raid finished!!!"
+		echo "Opt for raid finished!!!"
 	else
 		#HDD优化分支
 	        echo "${arg[$i-1]},HDD,Start Storage performance tuning!"
-                #1.HDD需要调度  ,mq-deadline  默认即可
-                    #echo none > /sys/block/${arg[$i-1]}/queue/scheduler
-                #2.关闭merge
-                echo 2 > /sys/block/${arg[$i-1]}/queue/nomerges
-                #3.disable熵池
-                echo 0 > /sys/block/${arg[$i-1]}/queue/add_random
-                #4.哪个CPU提交的IO，哪个CPU去处理
-                echo 2 > /sys/block/${arg[$i-1]}/queue/rq_affinity
-                #5.disable irqbalance, and do a ont-time set of the interrupt vectors
-                service irqbalance stop
-                irqbalance --oneshot
-                #6.system性能tuning
-                tuned-adm profile throughput-performance
-		echo "HDD Opt for raid finished!!!"
 fi
 done
 
